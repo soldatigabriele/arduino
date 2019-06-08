@@ -1,0 +1,89 @@
+ 1 x Soil module
+
+   1 x Infrared sensor receiver module
+
+   1 x Laser head sensor module
+
+   1 x Temperature and humidity sensor module
+
+   1 x Infrared emission sensor module
+
+   1 x 5V relay module
+
+   1 x Gyro Module
+
+   1 x finger detect heartbeat module
+
+   1 x Microphone sensitivity sensor module
+
+   1 x Metal touch sensor module
+
+   1 x Flame sensor module
+
+   1 x 3-color LED module
+
+   1 x Hunt sensor module
+
+   1 x Linear magnetic Hall sensors
+
+   1 x Rotary encoder modules
+
+   1 x Active buzzer module
+
+   1 x Magic Light Cup modules
+
+   1 x Small passive buzzer module
+
+   1 x Digital temperature sensor module
+
+   1 x Tilt switch module
+
+   1 x Analogy Holzer magnetic sensor
+
+   1 x Ultrasonic module
+
+   1 x Mercury opening module
+
+   1 x Hall magnetic sensor module
+
+   1 x RGB LED SMD module
+
+   1 x Mini Reed module
+
+   1 x Bicolor LED common cathode module 3MM
+
+   1 x Smart car avoid obstacle sensor infrared sensor photoelectric switch
+
+   1 x Key switch module
+
+   1 x Photoresistor module
+
+   1 x Breadboard power module
+
+   1 x hit sensor module
+
+   1 x Temperature sensor module
+
+   1 x Vibration switch module
+
+   1 x Microphone sound sensor module
+
+   1 x Large reed module
+
+   1 x Two-color LED module
+
+   1 x Optical breaking module
+
+   1 x Temperature sensor module
+
+   1 x MP1584EN buck module
+
+   1 x SD card reader module
+
+   1 xPS2 Joystick game controller module
+
+   1 x Automatically flashing LED module
+
+   1 x DS1302 clock module
+
+   1 x Water level module
