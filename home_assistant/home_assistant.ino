@@ -1,4 +1,11 @@
-// Wifi stuff
+/**
+ * This sketch connects the board to HomeAssistant and synchronizes
+ * the states of up to 3 entities. The led of that entity will lit if
+ * the state is different than the specified one.
+ * Change the configuration variables in arduino_secrets.h before uploading
+ * the sketch to the board.
+ */
+#include "arduino_secrets.h"
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
@@ -10,10 +17,10 @@
 ESP8266WiFiMulti WiFiMulti;
 
 // Secrets
-const char *Ssid = "VirginMedia";
-const char *Password = "password-wifi";
-const String baseUrl = "http://192.168.1.104:8123/api/states";
-const String token = "home.assistant.token";
+const char *Ssid = WIFI_SSID;
+const char *Password = WIFI_PASSWORD;
+const String baseUrl = HOMEASSISTANT_URL;
+const String token = HOMEASSISTANT_TOKEN;
 
 // Leds and buttons
 const int resetParcelStateButton = D5;
