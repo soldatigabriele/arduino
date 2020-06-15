@@ -1,10 +1,10 @@
 /**
- * This sketch connects the board to HomeAssistant and synchronizes
- * the states of up to 3 entities. The led of that entity will lit if
- * the state is different than the specified one.
- * Change the configuration variables in arduino_secrets.h before uploading
- * the sketch to the board.
- */
+   This sketch connects the board to HomeAssistant and synchronizes
+   the states of up to 3 entities. The led of that entity will lit if
+   the state is different than the specified one.
+   Change the configuration variables in arduino_secrets.h before uploading
+   the sketch to the board.
+*/
 #include "arduino_secrets.h"
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
@@ -42,8 +42,8 @@ unsigned long currentMillis = 0;
 int allLeds[3] = {garage_on, alarm_on, parcel_on};
 int parcelLed[1] = {parcel_on};
 
-// If set to True the program will enter a panic mode
-bool fatalError = false;
+// While this is false, let's try and re-sync the states
+bool synched = false;
 
 void setup()
 {
@@ -67,8 +67,6 @@ void setup()
   Serial.println("Ready");
 
   connectToWifi();
-
-  syncAllStatuses();
 }
 
 void loop()
@@ -77,35 +75,43 @@ void loop()
 
   if (WiFiMulti.run() == WL_CONNECTED)
   {
+
+    // If there is an error, let's blink the led and try to resync the states
+    while (!synched)
+    {
+      syncAllStatuses();
+      if (synched) {
+        return;
+      }
+      Serial.println("statuses NOT synched");
+      blinkLed(allLeds, 500);
+    }
+
     currentMillis = millis();
 
     if (requestSyncState() || ((unsigned long)(currentMillis - oldMillis) >= DelayBetweenRequests))
     {
       syncAllStatuses();
       // Blink the led to show the value was successfully updated
-      blinkLed(allLeds);
+      blinkLed(allLeds, 6);
       oldMillis = millis();
     }
 
     // Listen for the button that resets the parcel state
     handleResetParcelState();
-
-    // If there is an error, let's blink the led indefinitely until manual reset
-    while (fatalError)
-    {
-      blinkLed(allLeds);
-    }
+    return;
   }
+  Serial.println("not connected to the wifi");
 }
 
 /**
- * Sync all the statuses with HA
- */
+   Sync all the statuses with HA
+*/
 void syncAllStatuses()
 {
   sendRequest("/sensor.verisure_house", "Off", alarm_on);
   sendRequest("/sensor.verisure_garage", "Off", garage_on);
-  sendRequest("/input_boolean.parcel_box", "Empty", parcel_on);
+  sendRequest("/input_boolean.parcel_box", "off", parcel_on);
   Serial.println("Statuses synched");
 }
 
@@ -131,9 +137,11 @@ void handleResetParcelState()
   int buttonState = digitalRead(resetParcelStateButton);
   if (buttonState == LOW && oldStatus == HIGH)
   {
+    synched = false;
+
     Serial.println("Reset parcel button pressed");
     // Give the user a feedback
-    blinkLed(parcelLed);
+    blinkLed(parcelLed, 12);
 
     WiFiClient client;
     HTTPClient http;
@@ -144,7 +152,7 @@ void handleResetParcelState()
       http.addHeader("Content-Type", "application/json");
 
       // start connection and send HTTP header
-      int httpCode = http.POST("{\"state\": \"Empty\"}");
+      int httpCode = http.POST("{\"state\": \"off\"}");
       // httpCode will be negative on error
       if (httpCode > 0)
       {
@@ -153,39 +161,39 @@ void handleResetParcelState()
         // file found at server
         if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY)
         {
+          synched = true;
           // Refresh the status of the parcel box
-          sendRequest("/input_boolean.parcel_box", "Empty", parcel_on);
-        }
-        else
-        {
-          fatalError = true;
+          sendRequest("/input_boolean.parcel_box", "off", parcel_on);
         }
       }
       else
       {
         Serial.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpCode).c_str());
-        fatalError = true;
       }
       http.end();
     }
     else
     {
       Serial.printf("[HTTP} Unable to connect\n");
-      fatalError = true;
     }
   }
   oldStatus = buttonState;
 }
 
 /**
-   Blink the leds in the passed arary of leds
+  Blink the leds in the passed array of leds
 */
-void blinkLed(int leds[])
+void blinkLed(int leds[], int duration)
 {
+  // Let's make the duration even
+  if (duration % 2 != 0)
+  {
+    duration++;
+  }
   int x, i = 0;
   // Note: we MUST use an even number of blinks, so we keep
   // the original status of the LED
-  for (x = 0; x < 6; x++)
+  for (x = 0; x < duration; x++)
   {
     for (i = 0; i <= arrayLength(leds); i++)
     {
@@ -223,6 +231,7 @@ void sendRequest(String endpoint, String condition, int led)
   WiFiClient client;
   HTTPClient http;
   String url = baseUrl + endpoint;
+  synched = false;
 
   if (http.begin(client, url))
   {
@@ -245,6 +254,7 @@ void sendRequest(String endpoint, String condition, int led)
         DeserializationError err = deserializeJson(doc, payload);
         if (!err)
         {
+          synched = true;
           String sensorState = doc["state"];
           digitalWrite(led, LOW);
 
@@ -256,20 +266,17 @@ void sendRequest(String endpoint, String condition, int led)
         else
         {
           Serial.printf("[HTTP] GET... failed, error: %s\n", err.c_str());
-          fatalError = true;
         }
       }
     }
     else
     {
-      fatalError = true;
       Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
     }
     http.end();
   }
   else
   {
-    fatalError = true;
     Serial.printf("[HTTP} Unable to connect\n");
   }
 }
